@@ -1,0 +1,91 @@
+======================================================================
+     GUIA DE SOBREVIVÊNCIA: PYTHON (PYSIDE6) + MYSQL CONNECTOR
+======================================================================
+Este guia serve para lembrar como a interface visual, o código Python
+e o Banco de Dados se comunicam para fazer o sistema de cadastro rodar.
+
+----------------------------------------------------------------------
+PILARES DO PROJETO: QUEM É QUEM?
+----------------------------------------------------------------------
+1. O Banco de Dados (MySQL Workbench): 
+   É o "Arquivo Morto" ou a folha de papel eterna. Tudo o que for salvo 
+   aqui não some quando o programa fecha. Ele guarda as tabelas.
+
+2. A Interface Visual (Qt Designer):
+   É a "Casca", o desenho que o usuário vê. Botões, caixas de texto 
+   e janelas. Ele gera um arquivo chamado "cadastro.ui".
+
+3. O Código (Python - controle.py):
+   É o "Cérebro" e o "Mensageiro". Ele pega o desenho do Designer, 
+   escuta quando o usuário clica em um botão, raspa o que foi digitado 
+   nas caixas de texto e leva até o banco do MySQL para salvar.
+
+----------------------------------------------------------------------
+PASSO A PASSO: COMO ELES SE CONECTAM NO CÓDIGO (LINHA POR LINHA)
+----------------------------------------------------------------------
+
+PASSO 1: Importar as ferramentas certas
+--------------------------------------
+Para o Python entender as telas novas (PySide6) e conversar com o MySQL, 
+precisamos trazer os módulos corretos:
+- 'QApplication': Gerencia o ciclo de vida do programa.
+- 'QUiLoader': É o "leitor" do arquivo do Designer. Ele substitui o antigo 'uic' do PyQt5.
+- 'mysql.connector': O driver que traduz os comandos do Python para o banco de dados.
+
+PASSO 2: Preparar e Carregar a Tela
+-----------------------------------
+app = QApplication([])   -> Inicializa o motor gráfico da interface.
+loader = QUiLoader()     -> Cria o leitor de telas.
+cadastro = loader.load("cadastro.ui") -> Abre o seu desenho do Designer.
+
+A partir desse momento, tudo o que você desenhou no Designer passa a ser 
+acessível no Python usando o prefixo "cadastro.NOME_DO_ELEMENTO".
+
+PASSO 3: Ligar para o Banco de Dados (A Conexão)
+------------------------------------------------
+conexao = mysql.connector.connect(...)
+Aqui passamos o endereço (host), o usuário (user), a senha (password) 
+e a gaveta certa (database = 'empresa_credito'). Sem isso, o Python não 
+tem permissão para mexer no banco de dados.
+
+PASSO 4: Criar o Cursor (O "Trabalhador")
+-----------------------------------------
+cursor = conexao.cursor()
+O 'cursor' é o funcionário que o Python envia para dentro do MySQL para 
+levar as ordens (comandos SQL) e trazer as respostas (dados).
+
+PASSO 5: Criar a Função que "Pega" os Dados da Tela
+---------------------------------------------------
+Quando o usuário clica em Salvar, uma função precisa agir:
+1. Ela raspa os textos das caixas do Designer usando '.text()':
+   Ex: nome = cadastro.txtNome.text()
+2. Ela monta o comando do MySQL (Query) usando '%s' como vagas temporárias.
+3. O 'cursor.execute()' coloca as informações raspadas dentro das vagas do '%s'.
+4. 'conexao.commit()' -> ESSENCIAL! É o botão de "Salvar" do Banco. Sem o commit, 
+   os dados vão para o banco mas desaparecem quando a conexão fecha.
+
+PASSO 6: O Clique do Botão (O Gatilho)
+--------------------------------------
+cadastro.btnSalvar.clicked.connect(inserir_dados)
+Aqui dizemos ao Python: "Fique olhando para o botão chamado 'btnSalvar'. 
+Se o usuário clicar nele, execute a função 'inserir_dados'".
+
+PASSO 7: Mostrar a Tela e Deixar Rodando
+----------------------------------------
+cadastro.show() -> Faz a janela ficar visível para o usuário.
+app.exec()      -> Trava o código em um loop infinito para o programa não 
+                   fechar sozinho (ele fica esperando o usuário clicar em algo).
+
+----------------------------------------------------------------------
+LEMBRETES IMPORTANTES PARA EVITAR ERROS (WILL DO FUTURO, LEIA ISSO!)
+----------------------------------------------------------------------
+- Diferença de Maiúsculas e Minúsculas: Se no Designer a caixa se chama 'txtCpf', 
+  no Python TEM QUE SER 'cadastro.txtCpf.text()'. Se errar uma letra, dá erro.
+  
+- Python 3.14+ usa PySide6: O curso antigo usa 'uic.loadUi()', mas você usa 
+  'QUiLoader()'. Mantenha a estrutura do loader sempre ativa.
+
+- Terminal correto: Se der "ModuleNotFoundError", garanta que você está instalando 
+  os pacotes direto no caminho do Python correto, usando:
+  & "C:\Caminho\Para\Seu\python.exe" -m pip install nome-do-pacote
+======================================================================
